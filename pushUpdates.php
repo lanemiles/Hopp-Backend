@@ -1,9 +1,8 @@
-
 <?php
 
 /*
 Check how long background things run
-Updated 2/2/2015
+Updated 2/16/2015
 
 
 */
@@ -15,8 +14,7 @@ $APPLICATION_ID = "0UW66oQJdG531qkgHXNjhcPRceTeVHG8hplMedDk";
 				$data = array(
 				    'channel' => 'global',
 				    'data' => array(
-				        'content-available' => "1",
-				        'sound' => "none.wav"
+				        'content-available' => "1"
 				    ),
 				);
 				$_data = json_encode($data);
