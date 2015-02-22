@@ -13,6 +13,7 @@ putting back into the database.
 require_once('PointLocationClass.php');
 require_once('LocationClass.php');
 require_once('UserClass.php');
+require_once('MessageClass.php');
 
 
 class PartyLocation {
@@ -249,6 +250,8 @@ class PartyLocation {
 
 	public static function getDataForPartyWithName($name) {
 		$conn = self::getSQLConnection();
+
+		//first, lets get name and num people
 		$sql = "SELECT `partyLocationID` FROM  `PartyLocations` where `Name` = '$name'";
 		$q   = $conn->query($sql); 
 		$array = array();
@@ -260,11 +263,27 @@ class PartyLocation {
 			$centerLong = $party->getCenterCoordinate()->getLongitude();
 			$temp['Name'] = $name;
 			$temp['NumPeople'] = $numPeople;
-			$temp['Latitude'] = floatval($centerLat);
-			$temp['Longitude'] = floatval($centerLong);
-			$temp['Outline'] = $party->getOutlineArray();
 			array_push($array, $temp);
 		}
+
+		//and now the messages
+		$sql = "SELECT * FROM  `Messages` WHERE `Location` = '$name' ORDER BY `messageID` DESC LIMIT 20";
+		$q   = $conn->query($sql); 
+		$array1 = array();
+		while($r = $q->fetch(PDO::FETCH_ASSOC)){
+			$message = new Message($r["messageID"], $r["userID"], $r["messageBody"]);
+			$message->setPrettyTime($r['prettyTime']);
+			$message->setTimestamp($r['timestamp']);
+			$message->setVoteCount($r['voteCount']);
+			$message->setLocation($r['Location']);
+			$temp['messageID'] = $message->getMessageID();
+			$temp['location'] = $message->getMessageLocation();
+			$temp['messageBody'] = $message->getMessageBody();
+			$temp['time'] = $message->getPrettyTime();
+			$temp['voteCount'] = $message->getVoteCount();
+			array_push($array1, $temp);			
+		}
+		array_push($array, $array1);
 		$array = json_encode($array);
 		print '{"Data" :';
 		print $array;
