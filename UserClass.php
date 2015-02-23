@@ -24,6 +24,8 @@ class User {
 	private $partyLocationID;
 	private $partyLocationName;
 	private $gender;
+	private $points;
+	private $voteHistory;
 
 	//the static connection object
 	private static $connection = null;
@@ -39,6 +41,9 @@ class User {
 		$this->gender = $gender;
 		$this->locationObject = new Location($latitude, $longitude);
 		$this->setPartyLocation();
+		$this->points = 0;
+		$this->voteHistory = $this->setVoteHistory(Message::getVoteHistoryForUser($this->userID));
+
 	}
 
 	private function setPartyLocation() {
@@ -55,6 +60,44 @@ class User {
 		}
 		$this->synchronizeLocationInformation();
 		
+	}
+
+	private function setPoints($numPoints) {
+		$this->points = $numPoints;
+	}
+
+	private function setVoteHistory($newDict) {
+		return $newDict;
+	}
+
+	public function upvoteMessageWithID($messageID) {
+		$conn = self::getSQLConnection();
+		date_default_timezone_set("America/Los_Angeles");
+		$now = date("Y-m-d H:i:s");		
+		$sql = "INSERT INTO `HeatmapData`.`MessageVotes` (`voteID`, `userID`, `messageID`, `vote`, `time`) VALUES (NULL, '$this->userID', '$messageID', 'upVote', '$now');";
+		$q = $conn->query($sql); 
+
+		$message = Message::getMessage($messageID);
+		$message->upVote();
+
+		var_dump($message);
+
+		$temp[$messageID] = "upVote";
+		array_push($temp, $this->voteHistory);
+	}
+
+	public function downvoteMessageWithID($messageID) {
+		$conn = self::getSQLConnection();
+		date_default_timezone_set("America/Los_Angeles");
+		$now = date("Y-m-d H:i:s");		
+		$sql = "INSERT INTO `HeatmapData`.`MessageVotes` (`voteID`, `userID`, `messageID`, `vote`, `time`) VALUES (NULL, '$this->userID', '$messageID', 'downVote', '$now');";
+		$q = $conn->query($sql);
+
+		$message = Message::getMessage($messageID);
+		$message->downVote();
+
+		$temp[$messageID] = "downVote";
+		array_push($temp, $this->voteHistory); 
 	}
 
 	//update users location
@@ -103,6 +146,16 @@ class User {
 		$q = $conn->query($sql); 
 	}
 
+	public function giveNPoints($numPoints) {
+		$conn = self::getSQLConnection();
+
+		$this->points += $numPoints;
+		
+		$sql = "UPDATE `HeatmapData`.`Users` SET  `points` =  '$this->numPoints' WHERE  `Users`.`userID` = '$this->userID';";
+		$q = $conn->query($sql); 
+	}
+
+
 
 	//add user to database
 	public function addUserToDatabase() {
@@ -113,8 +166,8 @@ class User {
 		$locationPlace = $this->partyLocationName;
 		$latitude = $this->locationObject->getLatitude();
 		$longitude = $this->locationObject->getLongitude();
-		$sql = "INSERT INTO `HeatmapData`.`Users` (`userID`, `fullName`, `shortName`, `gender`, `latitude`, `longitude`, `locationCoords`, `locationPlace`, `age`) 
-		VALUES ('$this->userID','$this->longName' , '$this->shortName', '$this->gender', '$latitude', '$longitude', '$locationCoords', '$locationPlace', '$this->age');";
+		$sql = "INSERT INTO `HeatmapData`.`Users` (`userID`, `fullName`, `shortName`, `gender`, `latitude`, `longitude`, `locationCoords`, `locationPlace`, `age`, `points`) 
+		VALUES ('$this->userID','$this->longName' , '$this->shortName', '$this->gender', '$latitude', '$longitude', '$locationCoords', '$locationPlace', '$this->age', '$this->points');";
 		$q   = $conn->query($sql);
 		$this->addUserToParty();
 	}
@@ -138,6 +191,10 @@ class User {
 
 	public function getUserID() {
 		return $this->userID;
+	}
+
+	public function getPoints() {
+		return $this->points;
 	}
 
 	public function getLocation () {
@@ -165,6 +222,7 @@ class User {
 		$q   = $conn->query($sql); 
 		while($r = $q->fetch(PDO::FETCH_ASSOC)){
 			$user = new User($r["userID"], $r["fullName"], $r["shortName"], $r["age"], $r["latitude"],$r["longitude"], $r["gender"]);
+			$user->setPoints($r["points"]);
 			return $user;
 		}
 		
@@ -189,6 +247,8 @@ class User {
 		$array['time'] = date("g:i A"); 
 		$array['shortName'] = $this->shortName;
 		$array['fullName'] = $this->longName;
+		$array['points'] = $this->points;
+		$array['voteHistory'] = $this->voteHistory;
 		$array = json_encode($array);
 		print '{"Data" :';
 		print $array;

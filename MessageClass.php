@@ -32,6 +32,10 @@ class Message {
 		$this->timestamp = date("Y-m-d H:i:s");
 		$this->prettyTime = date("g:i A");
 		$this->voteCount = 0;
+
+		//give our user points
+		$user = User::getUser($userID);
+		$user->giveNPoints(10);
 	}
 
 	public function addMessageToDatabase() {
@@ -126,9 +130,25 @@ class Message {
 		
 	}
 
+	public static function getVoteHistoryForUser($userID) {
+		$conn = self::getSQLConnection();
+		$sql = "SELECT * FROM  `MessageVotes` where `userID` = '$userID'";
+		$q   = $conn->query($sql); 
+		$array = array();
+		while($r = $q->fetch(PDO::FETCH_ASSOC)){
+	
+			$temp['messageID'] = $r["messageID"];
+			$temp['vote'] = $r["vote"];
+			
+			array_push($array, $temp);
+		}
+
+		return $array;
+	}
+
 	public static function getMessagesJSON() {
 		$conn = self::getSQLConnection();
-		$sql = "SELECT * FROM  `Messages` ORDER BY `messageID` DESC LIMIT 20 ";
+		$sql = "SELECT * FROM  `Messages` ORDER BY `messageID` DESC";
 		$q   = $conn->query($sql); 
 		$array = array();
 		while($r = $q->fetch(PDO::FETCH_ASSOC)){
