@@ -32,10 +32,7 @@ class Message {
 		$this->timestamp = date("Y-m-d H:i:s");
 		$this->prettyTime = date("g:i A");
 		$this->voteCount = 0;
-
-		//give our user points
-		$user = User::getUser($userID);
-		$user->giveNPoints(10);
+		
 	}
 
 	public function addMessageToDatabase() {
@@ -45,7 +42,10 @@ class Message {
 		$sql = "INSERT INTO `HeatmapData`.`Messages` (`messageID`, `userID`, `prettyTime`, `timestamp`, `messageBody`, `voteCount`,`Location`) 
 		VALUES ('$this->messageID','$this->userID' , '$this->prettyTime', '$this->timestamp', '$this->messageBody', '$this->voteCount', '$this->location');";
 		$q   = $conn->query($sql);
-		var_dump($sql);
+
+		//give points here
+		$user = User::getUser($this->userID);
+		$user->giveNPoints(10);
 	}
 
 	public function getUserID() {
@@ -135,12 +135,12 @@ class Message {
 		$sql = "SELECT * FROM  `MessageVotes` where `userID` = '$userID'";
 		$q   = $conn->query($sql); 
 		$array = array();
+		$array["hasSomething"] = "Yes";
 		while($r = $q->fetch(PDO::FETCH_ASSOC)){
 	
-			$temp['messageID'] = $r["messageID"];
-			$temp['vote'] = $r["vote"];
+			$array[$r["messageID"]] = $r["vote"];
 			
-			array_push($array, $temp);
+			
 		}
 
 		return $array;

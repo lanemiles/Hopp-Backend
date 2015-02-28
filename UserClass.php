@@ -80,10 +80,10 @@ class User {
 		$message = Message::getMessage($messageID);
 		$message->upVote();
 
-		var_dump($message);
-
 		$temp[$messageID] = "upVote";
 		array_push($temp, $this->voteHistory);
+
+		$this->giveNPoints(5);
 	}
 
 	public function downvoteMessageWithID($messageID) {
@@ -97,7 +97,9 @@ class User {
 		$message->downVote();
 
 		$temp[$messageID] = "downVote";
-		array_push($temp, $this->voteHistory); 
+		array_push($temp, $this->voteHistory);
+
+		$this->giveNPoints(5); 
 	}
 
 	//update users location
@@ -151,7 +153,7 @@ class User {
 
 		$this->points += $numPoints;
 		
-		$sql = "UPDATE `HeatmapData`.`Users` SET  `points` =  '$this->numPoints' WHERE  `Users`.`userID` = '$this->userID';";
+		$sql = "UPDATE `HeatmapData`.`Users` SET  `points` =  '$this->points' WHERE  `Users`.`userID` = '$this->userID';";
 		$q = $conn->query($sql); 
 	}
 
