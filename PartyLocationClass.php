@@ -5,9 +5,7 @@ Building Class
 Updated 1/9/2015
 
 This class will be used to keep track of all the relevant information for each place.
-We will store the serialized version of the object in our database and then retrieve
-it and unserialize before calling the various methods. We then will re-serialize before
-putting back into the database.
+
 
 */
 require_once('PointLocationClass.php');
@@ -25,6 +23,11 @@ class PartyLocation {
 	private $numPeople;
 	private $listOfUserIDs;
 	private $centerCoordinate;
+	private $listOfDrinkTypes;
+	private $dressCode;
+	private $listOfPartyTypes;
+	private $hoppLevel;
+	private $percentGuys;
 
 	//connection obj
 	private static $connection = null;
@@ -36,7 +39,12 @@ class PartyLocation {
 		$this->arrayOfLocationObjs = $cords;
 		$this->numPeople = 0;
 		$this->listOfUserIDs = array();
+		$this->listOfDrinkTypes = array();
+		$this->dressCode = "";
+		$this->listOfPartyTypes = array();
 		$this->centerCoordinate = $centerCoord;
+		$this->hoppLevel = 0;
+		$this->percentGuys = 0;
 	}
 
 	//getters
@@ -54,6 +62,30 @@ class PartyLocation {
 
 	public function getNumPeople() {
 		return $this->numPeople;
+	}
+
+	public function getHoppLevel() {
+		return $this->hoppLevel;
+	}
+
+	public function getDressCode() {
+		return $this->dressCode;
+	}
+
+	public function getPartyTypeList() {
+		return $this->partyTypeList;
+	}
+
+	public function getDrinkList() {
+		return $this->drinkList;
+	}
+
+	public function getPercentGuys() {
+		return $this->percentGuys;
+	}
+
+	public function getPercentGirls() {
+		return (100 - $this->percentGuys);
 	}
 
 	public function getOutlineArray() {
@@ -74,6 +106,26 @@ class PartyLocation {
 		$this->listOfUserIDs = $list;
 	}
 
+	public function setDrinkTypes($list) {
+		$this->listOfDrinkTypes = $list;
+	}
+
+	public function setDressCode($style) {
+		$this->dressCode = $style;
+	}
+
+	public function setPartyTypes($types) {
+		$this->listOfPartyTypes = $types;
+	}
+
+	public function setHoppLevel($level) {
+		$this->hoppLevel = $level;
+	}
+
+	public function setPercentGuys($percent) {
+		$this->percentGuys = $percent;
+	}
+
 	//add party to database
 	public function addPartyLocationToDatabase() {
 		//now add this user to the database
@@ -81,8 +133,10 @@ class PartyLocation {
 		$outlineArray = serialize($this->arrayOfLocationObjs);
 		$userIDList = serialize($this->listOfUserIDs);
 		$centerCord = serialize($this->centerCoordinate);
-		$sql = "INSERT INTO  `HeatmapData`.`PartyLocations` ( `partyLocationID` , `name` , `numPeople` , `partyOutlineLocations` , `listOfUserIDs` , `centerCoordinate`)
-		VALUES ($this->partyLocationID ,  '$this->name',  '$this->numPeople',  '$outlineArray',  '$userIDList',  '$centerCord');";
+		$drinkList = serialize($this->listOfDrinkTypes);
+		$partyTypeList = serialize($this->listOfPartyTypes);
+		$sql = "INSERT INTO  `HeatmapData`.`PartyLocations` ( `partyLocationID` , `name` , `numPeople` , `partyOutlineLocations` , `listOfUserIDs` , `centerCoordinate`, `drinkList`, `partyTypeList`, `dressCode`, `hoppLevel`, `percentGuys`)
+		VALUES ($this->partyLocationID ,  '$this->name',  '$this->numPeople',  '$outlineArray',  '$userIDList',  '$centerCord', '$drinkList', '$partyTypeList', '$this->dressCode', '$this->hoppLevel', '$this->percentGuys');";
 		$q   = $conn->query($sql); 
 	}
 
@@ -91,12 +145,21 @@ class PartyLocation {
 		$outlineArray = serialize($this->arrayOfLocationObjs);
 		$userIDList = serialize($this->listOfUserIDs);
 		$centerCord = serialize($this->centerCoordinate);
+		$drinkList = serialize($this->listOfDrinkTypes);
+		$partyTypeList = serialize($this->listOfPartyTypes);
+		$dressCode = $this->dressCode;
 		$sql = "UPDATE  `HeatmapData`.`PartyLocations` SET  `partyLocationID` =  '$this->partyLocationID',
 		`name` =  '$this->name',
 		`numPeople` =  '$this->numPeople',
 		`partyOutlineLocations` =  '$outlineArray',
 		`listOfUserIDs` =  '$userIDList',
-		`centerCoordinate` =  '$centerCord' WHERE  `PartyLocations`.`partyLocationID` = '$this->partyLocationID';";
+		`centerCoordinate` =  '$centerCord' ,
+		`drinkList` =  '$drinkList' ,
+		`partyTypeList` =  '$partyTypeList' ,
+		`dressCode` =  '$dressCode',
+		`hoppLevel` = '$this->hoppLevel',
+		`percentGuys` = '$this->percentGuys'
+		WHERE  `PartyLocations`.`partyLocationID` = '$this->partyLocationID';";
 		$q   = $conn->query($sql); 
 	}
 
@@ -197,9 +260,23 @@ class PartyLocation {
 			$outlineArray = unserialize($r['partyOutlineLocations']);
 			$userIDList = unserialize($r['listOfUserIDs']);
 			$centerCord = unserialize($r['centerCoordinate']);
+
+			$drinkList = unserialize($r['drinkList']);
+			$partyTypeList = unserialize($r['partyTypeList']);
+			$dressCode = $r['dressCode'];
+			$hoppLevel = $r['hoppLevel'];
+
 			$newParty = new PartyLocation($r['partyLocationID'], $r['name'], $outlineArray, $centerCord);
 			$newParty->setNumPeople($r['numPeople']);
 			$newParty->setUserIDList($userIDList);
+
+
+			$newParty->setDressCode($dressCode);
+			$newParty->setPartyTypes($partyTypeList);
+			$newParty->setDrinkTypes($drinkList);
+			$newParty->setHoppLevel($hoppLevel);
+			$newParty->setPercentGuys($r['percentGuys']);
+
 			return $newParty;
 		}
 		
@@ -224,18 +301,25 @@ class PartyLocation {
 		$nameToNum = array();
 		while($r = $q->fetch(PDO::FETCH_ASSOC)){
 			$party = PartyLocation::getPartyWithID($r['partyLocationID']);
+			if ($party->getHoppLevel() > 0 && $party->getPartyName() != "Clark III") {
 			$name = $party->getPartyName();
 			$numPeople = $party->getNumPeople();
 			$centerLat = $party->getCenterCoordinate()->getLatitude();
 			$centerLong = $party->getCenterCoordinate()->getLongitude();
 			$temp['Name'] = $name;
-			$temp['NumPeople'] = $numPeople;
+			$temp['Hopp Level'] = $party->getHoppLevel();
+			$temp['Dress Code'] = $party->getDressCode();
+			$temp['Party Types'] = $party->getPartyTypeList();
+			$temp['Drink List'] = $party->getDrinkList();
+			$temp['Percent Guys'] = $party->getPercentGuys();
+			$temp['Percent Girls'] = $party->getPercentGirls();
 			$temp['Latitude'] = floatval($centerLat);
 			$temp['Longitude'] = floatval($centerLong);
 			$temp['Outline'] = $party->getOutlineArray();
 			$nameToArray[$name] = $temp;
 			$nameToNum[$name] = $numPeople;
 		}
+	}
 		arsort($nameToNum);
 		$array = array();
 		foreach ($nameToNum as $name => $num) {
@@ -262,7 +346,12 @@ class PartyLocation {
 			$centerLat = $party->getCenterCoordinate()->getLatitude();
 			$centerLong = $party->getCenterCoordinate()->getLongitude();
 			$temp['Name'] = $name;
-			$temp['NumPeople'] = $numPeople;
+			$temp['Hopp Level'] = $party->getHoppLevel();
+			$temp['Dress Code'] = $party->getDressCode();
+			$temp['Party Types'] = $party->getPartyTypeList();
+			$temp['Drink List'] = $party->getDrinkList();
+			$temp['Percent Guys'] = $party->getPercentGuys();
+			$temp['Percent Girls'] = $party->getPercentGirls();
 			array_push($array, $temp);
 		}
 
@@ -290,8 +379,37 @@ class PartyLocation {
 		print '}';
 	}
 
+	public static function returnHoppLevelForPartyWithName($name) {
+		$conn = self::getSQLConnection();
+
+		//first, lets get name and num people
+		$sql = "SELECT `partyLocationID` FROM  `PartyLocations` where `Name` = '$name'";
+		$q   = $conn->query($sql); 
+		$array = array();
+		while($r = $q->fetch(PDO::FETCH_ASSOC)){
+			$party = PartyLocation::getPartyWithID($r['partyLocationID']);
+			$name = $party->getPartyName();
+			$numPeople = $party->getNumPeople();
+			$centerLat = $party->getCenterCoordinate()->getLatitude();
+			$centerLong = $party->getCenterCoordinate()->getLongitude();
+			$temp['Name'] = $name;
+			$temp['Hopp Level'] = $party->getHoppLevel();
+			$temp['Dress Code'] = $party->getDressCode();
+			$temp['Party Types'] = $party->getPartyTypeList();
+			$temp['Drink List'] = $party->getDrinkList();
+			$temp['Percent Guys'] = $party->getPercentGuys();
+			$temp['Percent Girls'] = $party->getPercentGirls();
+			array_push($array, $temp);
+		}
+
+		return $temp['Hopp Level'];
+	}
+
+
 
 }
+
+
 
 //PartyLocation::getPartyForLocation(new Location(34.100256, -117.709582));
 

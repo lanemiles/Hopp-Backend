@@ -157,8 +157,19 @@ class Message {
 			$message->setTimestamp($r['timestamp']);
 			$message->setVoteCount($r['voteCount']);
 			$message->setLocation($r['Location']);
+
+			
+			$hotness = 0;
+
+			
+			if ($r['Location'] != "Unknown") {
+				$hotness = PartyLocation::returnHoppLevelForPartyWithName($r['Location']);
+			}
+			
+			
 			$temp['messageID'] = $message->getMessageID();
 			$temp['location'] = $message->getMessageLocation();
+			$temp['locationHotness'] = intval($hotness);
 			$temp['messageBody'] = $message->getMessageBody();
 			$temp['time'] = $message->getPrettyTime();
 			$temp['voteCount'] = $message->getVoteCount();
