@@ -1,3 +1,8 @@
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
 <?php
 
 require_once('PartyLocationClass.php');
@@ -40,4 +45,11 @@ $partyToEdit->setDrinkTypes($drinkList);
 $partyToEdit->setPartyTypes($partyType);
 $partyToEdit->synchronizeData();
 
+print '<script type="text/javascript">
+<!--
+window.location = "/Hopp/partyAdmin.php";
+//-->
+</script>';
+
 ?>
+

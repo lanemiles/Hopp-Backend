@@ -65,3 +65,5 @@ print "<br>";
 print "First: <input name='center'></input>" . "<br>";
 print "<input type='submit'></input>";
 ?>
+
+<br><br><br><a href='admin.php'>Back to Admin Panel</a><br>

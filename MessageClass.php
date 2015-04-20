@@ -83,8 +83,12 @@ class Message {
 	}
 
 	public function synchronizeData() {
+		if ($this->voteCount <= -5) {
+			$sql = "DELETE FROM `HeatmapData`.`Messages` WHERE `Messages`.`messageID` = '$this->messageID'";
+		} else {
+			$sql = "UPDATE `HeatmapData`.`Messages` SET `voteCount` = '$this->voteCount' WHERE `messageID` = '$this->messageID'";
+		}
 		$conn = self::getSQLConnection();
-		$sql = "UPDATE `HeatmapData`.`Messages` SET `voteCount` = '$this->voteCount' WHERE `messageID` = '$this->messageID'";
 		$q   = $conn->query($sql);
 	}
 

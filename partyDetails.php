@@ -1,3 +1,8 @@
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
 <?php
 
 $host   = "localhost";
@@ -66,7 +71,7 @@ foreach ($locationList as $location => $numThere) {
 print "</table>";
 
 ?>
-<br><br><a href='admin.php'>Manual Entry Page</a>
+<br><br><a href='admin.php'>Back to Admin Panel</a><br>
 
 
 

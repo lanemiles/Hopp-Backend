@@ -19,9 +19,22 @@ if (isset($_GET['messageBody'])) {
 	$messageBody = addslashes($_GET['messageBody']);
 }
 
-$message = new Message ($messageID,$userID,$messageBody);
-$message->addMessageToDatabase();
-var_dump($message);
+$listOfBannedWords = array("nigger", "nigg", "fag", "faggot", "gay", "cock", "penis", "vagina", "cunt", "bitch",
+						   "rape", "retard", "dick");
+
+$shouldPost = true;
+
+foreach($listOfBannedWords as $a) {
+    if (stripos($messageBody,$a) !== false) {
+    	$shouldPost = false;
+    }
+}
+
+if ($shouldPost) {
+	$message = new Message ($messageID,$userID,$messageBody);
+	$message->addMessageToDatabase();
+}
+
 
 
 ?>

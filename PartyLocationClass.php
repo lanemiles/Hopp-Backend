@@ -301,7 +301,8 @@ class PartyLocation {
 		$nameToNum = array();
 		while($r = $q->fetch(PDO::FETCH_ASSOC)){
 			$party = PartyLocation::getPartyWithID($r['partyLocationID']);
-			if ($party->getHoppLevel() > 0 && $party->getPartyName() != "Clark III") {
+			// if ($party->getHoppLevel() > 0 && $party->getPartyName() != "Clark III") {
+			if (true) {
 			$name = $party->getPartyName();
 			$numPeople = $party->getNumPeople();
 			$centerLat = $party->getCenterCoordinate()->getLatitude();
